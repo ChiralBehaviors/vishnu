@@ -1,0 +1,45 @@
+serviceUrl: "service:zookeeper:%s:%s"
+networkInterface: en0
+
+uniqueDirectories:
+  - base: /tmp
+    prefix: log-
+    suffix: .dir
+    variable: log.directory
+
+serviceProperties:
+    id: 1
+    updateGroup: B
+    
+variables:
+    threads: 5
+    useZookeeper: true
+
+gossip:
+    seeds: 
+        - localhost:6754
+        - localhost:6543
+        
+services:
+  - service: service:thor:rmi
+    variable: theMightyThor
+    properties:
+      eat-me: bite me
+      drink-me: spit me out
+    
+serviceCollections:
+  - cardinality: 5
+    properties:
+      eat-me: bite me
+      drink-me: spit me out
+    service: service:iron:man
+    variable: theInvincibleIronMan
+
+templates:
+  - name: zookeeper
+    templateGroup: zookeeper.stg
+    generated: zookeeper.properties
+  - name: kafka
+    templateGroup: kafka.stg
+    generated: kafka.properties
+  

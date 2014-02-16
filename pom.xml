@@ -35,10 +35,27 @@
 
 	<modules>
 		<module>vishnu</module>
+		<module>debugger</module>
 	</modules>
 
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>org.apache.zookeeper</groupId>
+				<artifactId>zookeeper</artifactId>
+				<version>3.4.5</version>
+				<scope>test</scope>
+				<exclusions>
+					<exclusion>
+						<artifactId>slf4j-log4j12</artifactId>
+						<groupId>org.slf4j</groupId>
+					</exclusion>
+					<exclusion>
+						<artifactId>slf4j-api</artifactId>
+						<groupId>org.slf4j</groupId>
+					</exclusion>
+				</exclusions>
+			</dependency>
 			<dependency>
 				<groupId>com.hellblazer</groupId>
 				<artifactId>utils</artifactId>
@@ -79,22 +96,6 @@
 				<version>4.0.7</version>
 			</dependency>
 			<dependency>
-				<groupId>org.apache.zookeeper</groupId>
-				<artifactId>zookeeper</artifactId>
-				<version>3.4.5</version>
-				<scope>test</scope>
-				<exclusions>
-					<exclusion>
-						<artifactId>slf4j-log4j12</artifactId>
-						<groupId>org.slf4j</groupId>
-					</exclusion>
-					<exclusion>
-						<artifactId>slf4j-api</artifactId>
-						<groupId>org.slf4j</groupId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-			<dependency>
 				<groupId>net.gescobar</groupId>
 				<artifactId>jmx-annotations</artifactId>
 				<version>1.0.0</version>
@@ -109,6 +110,7 @@
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-classic</artifactId>
 				<version>1.0.13</version>
+				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
@@ -119,6 +121,10 @@
 	</dependencyManagement>
 
 	<repositories>
+		<repository>
+			<id>Maven Central</id>
+			<url>http://central.maven.org/maven2/</url>
+		</repository>
 		<repository>
 			<id>hellblazer-release</id>
 			<url>https://repository-hal900000.forge.cloudbees.com/release/</url>

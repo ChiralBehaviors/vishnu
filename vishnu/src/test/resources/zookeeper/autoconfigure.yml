@@ -1,0 +1,29 @@
+restartStateFile: ${test.dir}.autoconfigure.restart.file
+serviceUrl: "service:zookeeper:tcp://%s:%s"
+networkInterface: ${network.interface}
+additionalPorts:
+  - electionPort
+  - quorumPort
+totalOrderingFrom: cluster
+totalOrderingVariable: myid
+
+uniqueDirectories:
+  - base: ${test.dir}
+    prefix: data-
+    suffix: .dir
+    variable: dataDirectory
+
+gossip:
+    seeds: 
+        - ${gossip.seed.host}:${gossip.seed.port}
+        
+serviceCollections:
+  - service: "service:zookeeper:tcp"
+    idProperty: id
+    variable: cluster
+    cardinality: 2
+
+templates:
+  - name: zookeeper
+    templateGroup: ${test.dir}/zookeeper.stg
+    generated: ${test.dir}/zookeeper.properties
