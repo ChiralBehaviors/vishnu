@@ -30,10 +30,6 @@ import org.apache.zookeeper.server.quorum.QuorumPeer;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
 
-import com.chiralBehaviors.autoconfigure.AutoConfigureService;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-
 /**
  * An example of using auto configuration to simplify the configuration of a
  * zookeeper cluster.
@@ -64,12 +60,9 @@ public class ZookeeperLauncher extends AutoConfigureService {
 	private QuorumPeer quorumPeer;
 	/**
 	 * @param string
-	 * @throws IOException
-	 * @throws JsonMappingException
-	 * @throws JsonParseException
+	 * @throws Exception 
 	 */
-	public ZookeeperLauncher(String fileName) throws JsonParseException,
-			JsonMappingException, IOException {
+	public ZookeeperLauncher(String fileName) throws Exception {
 		super(fileName);
 	}
 

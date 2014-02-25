@@ -51,14 +51,14 @@ import com.chiralBehaviors.autoconfigure.configuration.SingletonService;
 import com.chiralBehaviors.autoconfigure.configuration.Template;
 import com.chiralBehaviors.autoconfigure.configuration.UniqueDirectory;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hellblazer.gossip.configuration.GossipConfiguration;
-import com.hellblazer.nexus.GossipScope;
+import com.hellblazer.nexus.config.GossipScopeConfiguration;
 import com.hellblazer.slp.InvalidSyntaxException;
 import com.hellblazer.slp.ServiceEvent;
 import com.hellblazer.slp.ServiceListener;
 import com.hellblazer.slp.ServiceReference;
 import com.hellblazer.slp.ServiceScope;
 import com.hellblazer.slp.ServiceURL;
+import com.hellblazer.slp.config.ServiceScopeConfiguration;
 import com.hellblazer.utils.LabeledThreadFactory;
 import com.hellblazer.utils.Rendezvous;
 import com.hellblazer.utils.Utils;
@@ -114,11 +114,10 @@ public class AutoConfigure {
      * 
      * @param config
      *            - the configuration to use
-     * @throws SocketException
-     *             - if the discovery service cannot be constructed
+     * @throws Exception
      */
-    public AutoConfigure(Configuration config) throws SocketException {
-        this(config, new GossipScope(config.gossip.construct()));
+    public AutoConfigure(Configuration config) throws Exception {
+        this(config, config.discovery.construct());
     }
 
     /**
@@ -214,7 +213,7 @@ public class AutoConfigure {
                          String totalOrderingVariable,
                          boolean verboseTemplating,
                          JmxConfiguration jmxConfiguration,
-                         GossipConfiguration gossipConfig) {
+                         ServiceScopeConfiguration gossipConfig) {
         this(new Configuration(serviceFormat, networkInterface, ipV6,
                                serviceProperties, services, serviceCollections,
                                templates, variables, uniqueDirectories,
@@ -656,13 +655,17 @@ public class AutoConfigure {
         }
 
         // Register the Gossip seeds
-        try {
-            // create a Cluster to make interaction with Gossip seeds equal to
-            // service collections
-            st.add("gossipSeeds", new Cluster<>(config.gossip.seeds));
-        } catch (IllegalArgumentException e) {
-            // Really? This is how I have to detect that there isn't a formal
-            // parameter? #fail
+        if (config.discovery instanceof GossipScopeConfiguration) {
+            try {
+                // create a Cluster to make interaction with Gossip seeds equal to
+                // service collections
+                st.add("gossipSeeds",
+                       new Cluster<>(
+                                     ((GossipScopeConfiguration) config.discovery).gossip.seeds));
+            } catch (IllegalArgumentException e) {
+                // Really? This is how I have to detect that there isn't a formal
+                // parameter? #fail
+            }
         }
 
         // Finally, register the service being configured

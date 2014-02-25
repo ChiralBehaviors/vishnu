@@ -13,9 +13,11 @@ uniqueDirectories:
     suffix: .dir
     variable: dataDirectory
 
-gossip:
-    seeds: 
-        - ${gossip.seed.host}:${gossip.seed.port}
+discovery:
+    type: gossipScope
+    gossip:
+        seeds: 
+            - ${gossip.seed.host}:${gossip.seed.port}
         
 serviceCollections:
   - service: "service:zookeeper:tcp"

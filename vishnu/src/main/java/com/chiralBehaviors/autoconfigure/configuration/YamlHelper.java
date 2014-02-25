@@ -21,10 +21,9 @@ import java.io.InputStream;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.hellblazer.gossip.configuration.GossipModule;
+import com.hellblazer.nexus.config.GossipScopeModule;
 
 /**
  * @author hhildebrand
@@ -43,11 +42,7 @@ public class YamlHelper {
                                                           JsonMappingException,
                                                           IOException {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        mapper.registerModule(getModule());
+        mapper.registerModule(new GossipScopeModule());
         return mapper.readValue(yaml, Configuration.class);
-    }
-
-    public static Module getModule() {
-        return new GossipModule();
     }
 }

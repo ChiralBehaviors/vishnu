@@ -16,7 +16,6 @@ package com.chiralBehaviors.autoconfigure;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.SocketException;
 import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -82,17 +81,13 @@ public abstract class AutoConfigureService {
      * 
      * @param configuration
      *            - you know what this is.
-     * @throws SocketException
+     * @throws Exception
      */
-    public AutoConfigureService(Configuration configuration)
-                                                            throws SocketException {
+    public AutoConfigureService(Configuration configuration) throws Exception {
         this(configuration.construct());
     }
 
-    public AutoConfigureService(String configurationResource)
-                                                             throws JsonParseException,
-                                                             JsonMappingException,
-                                                             IOException {
+    public AutoConfigureService(String configurationResource) throws Exception {
         this(configurationFrom(configurationResource));
     }
 

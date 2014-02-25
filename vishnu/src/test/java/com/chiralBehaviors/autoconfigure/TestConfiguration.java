@@ -30,6 +30,7 @@ import com.chiralBehaviors.autoconfigure.configuration.SingletonService;
 import com.chiralBehaviors.autoconfigure.configuration.UniqueDirectory;
 import com.chiralBehaviors.autoconfigure.configuration.YamlHelper;
 import com.hellblazer.gossip.configuration.GossipConfiguration;
+import com.hellblazer.nexus.config.GossipScopeConfiguration;
 
 /**
  * @author hhildebrand
@@ -37,39 +38,38 @@ import com.hellblazer.gossip.configuration.GossipConfiguration;
  */
 public class TestConfiguration {
 
-	@Test
-	public void configurationTest() throws Exception {
-		InputStream is = getClass().getResourceAsStream(
-				"/yaml/autoconfigure.yml");
-		Configuration config = YamlHelper.fromYaml(is);
-		assertNotNull(config);
-		GossipConfiguration gossip = config.gossip;
-		assertNotNull(gossip);
-		List<InetSocketAddress> seeds = gossip.seeds;
-		assertNotNull(gossip);
-		assertEquals(new InetSocketAddress("localhost", 6754), seeds.get(0));
-		assertEquals(new InetSocketAddress("localhost", 6543), seeds.get(1));
-		List<ServiceCollection> serviceCollections = config.serviceCollections;
-		assertNotNull(serviceCollections);
-		assertEquals(1, serviceCollections.size());
-		ServiceCollection serviceCollection = serviceCollections.get(0);
-		assertEquals(5, serviceCollection.cardinality);
-		assertEquals("service:iron:man", serviceCollection.service);
-		assertEquals(5, serviceCollection.cardinality);
+    @Test
+    public void configurationTest() throws Exception {
+        InputStream is = getClass().getResourceAsStream("/yaml/autoconfigure.yml");
+        Configuration config = YamlHelper.fromYaml(is);
+        assertNotNull(config);
+        GossipConfiguration gossip = ((GossipScopeConfiguration) config.discovery).gossip;
+        assertNotNull(gossip);
+        List<InetSocketAddress> seeds = gossip.seeds;
+        assertNotNull(gossip);
+        assertEquals(new InetSocketAddress("localhost", 6754), seeds.get(0));
+        assertEquals(new InetSocketAddress("localhost", 6543), seeds.get(1));
+        List<ServiceCollection> serviceCollections = config.serviceCollections;
+        assertNotNull(serviceCollections);
+        assertEquals(1, serviceCollections.size());
+        ServiceCollection serviceCollection = serviceCollections.get(0);
+        assertEquals(5, serviceCollection.cardinality);
+        assertEquals("service:iron:man", serviceCollection.service);
+        assertEquals(5, serviceCollection.cardinality);
 
-		List<SingletonService> services = config.services;
-		assertNotNull(services);
-		assertEquals(1, services.size());
-		SingletonService service = services.get(0);
-		assertEquals("service:thor:rmi", service.service);
+        List<SingletonService> services = config.services;
+        assertNotNull(services);
+        assertEquals(1, services.size());
+        SingletonService service = services.get(0);
+        assertEquals("service:thor:rmi", service.service);
 
-		List<UniqueDirectory> uniqueDirectories = config.uniqueDirectories;
-		assertNotNull(uniqueDirectories);
-		assertEquals(1, uniqueDirectories.size());
-		UniqueDirectory dir = uniqueDirectories.get(0);
-		assertEquals(new File("/tmp"), dir.base);
-		assertEquals("log-", dir.prefix);
-		assertEquals(".dir", dir.suffix);
-		assertEquals("log.directory", dir.variable);
-	}
+        List<UniqueDirectory> uniqueDirectories = config.uniqueDirectories;
+        assertNotNull(uniqueDirectories);
+        assertEquals(1, uniqueDirectories.size());
+        UniqueDirectory dir = uniqueDirectories.get(0);
+        assertEquals(new File("/tmp"), dir.base);
+        assertEquals("log-", dir.prefix);
+        assertEquals(".dir", dir.suffix);
+        assertEquals("log.directory", dir.variable);
+    }
 }

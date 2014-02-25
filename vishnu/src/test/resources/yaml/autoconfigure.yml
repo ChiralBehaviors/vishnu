@@ -15,10 +15,12 @@ variables:
     threads: 5
     useZookeeper: true
 
-gossip:
-    seeds: 
-        - localhost:6754
-        - localhost:6543
+discovery:
+    type: gossipScope
+    gossip:
+        seeds: 
+            - localhost:6754
+            - localhost:6543
         
 services:
   - service: service:thor:rmi

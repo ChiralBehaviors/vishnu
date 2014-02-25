@@ -14,38 +14,37 @@
  */
 package com.chiralBehaviors.autoconfigure.configuration;
 
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.chiralBehaviors.autoconfigure.AutoConfigure;
-import com.hellblazer.gossip.configuration.GossipConfiguration;
+import com.hellblazer.slp.config.ServiceScopeConfiguration;
 
 /**
  * @author hhildebrand
  * 
  */
 public class Configuration {
-    public static String           RESTART_STATE_FILE = ".autoconfigure.restart.state";
+    public static String             RESTART_STATE_FILE = ".autoconfigure.restart.state";
 
-    public List<String>            additionalPorts    = new ArrayList<>();
-    public GossipConfiguration     gossip             = new GossipConfiguration();
-    public boolean                 ipV6               = false;
-    public JmxConfiguration        jmx                = new JmxConfiguration();
-    public String                  networkInterface;
-    public String                  restartStateFile   = RESTART_STATE_FILE;
-    public List<ServiceCollection> serviceCollections = new ArrayList<>();
-    public Map<String, String>     serviceProperties  = new HashMap<>();
-    public List<SingletonService>  services           = new ArrayList<>();
-    public String                  serviceUrl;
-    public List<Template>          templates          = new ArrayList<>();
-    public String                  totalOrderingFrom;
-    public String                  totalOrderingVariable;
-    public List<UniqueDirectory>   uniqueDirectories  = new ArrayList<>();
-    public Map<String, String>     variables          = new HashMap<>();
-    public boolean                 verboseTemplating  = false;
+    public List<String>              additionalPorts    = new ArrayList<>();
+    public ServiceScopeConfiguration discovery;
+    public boolean                   ipV6               = false;
+    public JmxConfiguration          jmx                = new JmxConfiguration();
+    public String                    networkInterface;
+    public String                    restartStateFile   = RESTART_STATE_FILE;
+    public List<ServiceCollection>   serviceCollections = new ArrayList<>();
+    public Map<String, String>       serviceProperties  = new HashMap<>();
+    public List<SingletonService>    services           = new ArrayList<>();
+    public String                    serviceUrl;
+    public List<Template>            templates          = new ArrayList<>();
+    public String                    totalOrderingFrom;
+    public String                    totalOrderingVariable;
+    public List<UniqueDirectory>     uniqueDirectories  = new ArrayList<>();
+    public Map<String, String>       variables          = new HashMap<>();
+    public boolean                   verboseTemplating  = false;
 
     public Configuration() {
 
@@ -62,7 +61,8 @@ public class Configuration {
                          String totalOrderingFrom,
                          String totalOrderingVariable,
                          boolean verboseTemplating, JmxConfiguration jmx,
-                         GossipConfiguration gossip, String restartStateFilename) {
+                         ServiceScopeConfiguration discovery,
+                         String restartStateFilename) {
         this.serviceUrl = serviceUrl;
         this.networkInterface = networkInterface;
         this.ipV6 = ipV6;
@@ -77,9 +77,7 @@ public class Configuration {
         this.totalOrderingVariable = totalOrderingVariable;
         this.verboseTemplating = verboseTemplating;
         this.jmx = jmx;
-        if (gossip != null) {
-            this.gossip = gossip;
-        }
+        this.discovery = discovery;
         if (restartStateFilename != null) {
             restartStateFile = restartStateFilename;
         }
@@ -90,9 +88,9 @@ public class Configuration {
      * 
      * @return an instance of Autoconfiguration constructed from this
      *         configuration
-     * @throws SocketException
+     * @throws Exception
      */
-    public AutoConfigure construct() throws SocketException {
+    public AutoConfigure construct() throws Exception {
         return new AutoConfigure(this);
     }
 }
