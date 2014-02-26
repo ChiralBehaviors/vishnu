@@ -38,113 +38,119 @@ import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
  * 
  */
 public class ZookeeperLauncher extends AutoConfigureService {
-	public static void main(String[] argv) throws Exception {
-		if (argv.length != 2) {
-			System.err.println("ZookeeperLauncher <config file> <timeout>");
-			System.exit(1);
-			return;
-		}
-		ZookeeperLauncher launcher = new ZookeeperLauncher(argv[0]);
-		long timeout = Long.parseLong(argv[1]);
-		launcher.start(timeout, TimeUnit.SECONDS);
-	}
+    public static void main(String[] argv) throws Exception {
+        if (argv.length != 2) {
+            System.err.println("ZookeeperLauncher <config file> <timeout>");
+            System.exit(1);
+            return;
+        }
+        ZookeeperLauncher launcher = new ZookeeperLauncher(argv[0]);
+        long timeout = Long.parseLong(argv[1]);
+        launcher.start(timeout, TimeUnit.SECONDS);
+    }
 
-	// Used in testing
-	public final AtomicBoolean configurationCompleted = new AtomicBoolean();
+    // Used in testing
+    public final AtomicBoolean configurationCompleted = new AtomicBoolean();
 
-	// Used in testing
-	public final AtomicBoolean success = new AtomicBoolean();
-	private final Logger LOG = Logger.getLogger(ZookeeperLauncher.class
-			.getCanonicalName());
+    // Used in testing
+    public final AtomicBoolean success                = new AtomicBoolean();
+    private final Logger       LOG                    = Logger.getLogger(ZookeeperLauncher.class.getCanonicalName());
 
-	private QuorumPeer quorumPeer;
-	/**
-	 * @param string
-	 * @throws Exception 
-	 */
-	public ZookeeperLauncher(String fileName) throws Exception {
-		super(fileName);
-	}
+    private QuorumPeer         quorumPeer;
 
-	public void fail(Map<String, File> configurations) {
-		configurationCompleted.set(true);
-		success.set(false);
-		System.err.println("Auto configuration of Zookeeper failed");
-	}
+    /**
+     * @param string
+     * @throws Exception
+     */
+    public ZookeeperLauncher(String fileName) throws Exception {
+        super(fileName);
+    }
 
-	/**
-	 * @return the quorumPeer
-	 */
-	public QuorumPeer getQuorumPeer() {
-		return quorumPeer;
-	}
+    @Override
+    public void fail(Map<String, File> configurations) {
+        configurationCompleted.set(true);
+        success.set(false);
+        System.err.println("Auto configuration of Zookeeper failed");
+    }
 
-	public void succeed(Map<String, File> configurations) {
-		String configurationFile = configurations.get("zookeeper")
-				.getAbsolutePath();
-		try {
-			initializeAndRun(new String[] { configurationFile });
-			configurationCompleted.set(true);
-			success.set(true);
-		} catch (Throwable e) {
-			throw new IllegalStateException(String.format(
-					"Unable to start zookeeper using configuration file %s",
-					configurationFile), e);
-		}
-	}
+    /**
+     * @return the quorumPeer
+     */
+    public QuorumPeer getQuorumPeer() {
+        return quorumPeer;
+    }
 
-	/**
-	 * Copied from QuorumPeerMain because whomever wrote that crap made things
-	 * protected. Because freedom.
-	 */
-	protected void initializeAndRun(String[] args) throws ConfigException,
-			IOException {
-		QuorumPeerConfig config = new QuorumPeerConfig();
-		if (args.length == 1) {
-			config.parse(args[0]);
-		}
+    @Override
+    public void succeed(Map<String, File> configurations) {
+        String configurationFile = configurations.get("zookeeper").getAbsolutePath();
+        try {
+            initializeAndRun(new String[] { configurationFile });
+            configurationCompleted.set(true);
+            success.set(true);
+        } catch (Throwable e) {
+            throw new IllegalStateException(
+                                            String.format("Unable to start zookeeper using configuration file %s",
+                                                          configurationFile), e);
+        }
+    }
 
-		// Start and schedule the the purge task
-		DatadirCleanupManager purgeMgr = new DatadirCleanupManager(
-				config.getDataDir(), config.getDataLogDir(),
-				config.getSnapRetainCount(), config.getPurgeInterval());
-		purgeMgr.start();
+    /**
+     * Copied from QuorumPeerMain because whomever wrote that crap made things
+     * protected. Because freedom.
+     */
+    protected void initializeAndRun(String[] args) throws ConfigException,
+                                                  IOException {
+        QuorumPeerConfig config = new QuorumPeerConfig();
+        if (args.length == 1) {
+            config.parse(args[0]);
+        }
 
-		if (args.length == 1 && config.getServers().size() > 0) {
-			runFromConfig(config);
-		} else {
-			LOG.warning("Running in standalone mode");
-			// there is only server in the quorum -- run as standalone
-			ZooKeeperServerMain.main(args);
-		}
-	}
+        // Start and schedule the the purge task
+        DatadirCleanupManager purgeMgr = new DatadirCleanupManager(
+                                                                   config.getDataDir(),
+                                                                   config.getDataLogDir(),
+                                                                   config.getSnapRetainCount(),
+                                                                   config.getPurgeInterval());
+        purgeMgr.start();
 
-	/**
-	 * Copied from QuorumPeerMain
-	 */
-	protected void runFromConfig(QuorumPeerConfig config) throws IOException {
-		LOG.info("Starting quorum peer");
-		ServerCnxnFactory cnxnFactory = ServerCnxnFactory.createFactory();
-		cnxnFactory.configure(config.getClientPortAddress(),
-				config.getMaxClientCnxns());
+        if (args.length == 1 && config.getServers().size() > 0) {
+            runFromConfig(config);
+        } else {
+            LOG.warning("Running in standalone mode");
+            // there is only server in the quorum -- run as standalone
+            ZooKeeperServerMain.main(args);
+        }
+    }
 
-		quorumPeer = new QuorumPeer();
-		quorumPeer.setClientPortAddress(config.getClientPortAddress());
-		quorumPeer.setTxnFactory(new FileTxnSnapLog(new File(config
-				.getDataLogDir()), new File(config.getDataDir())));
-		quorumPeer.setQuorumPeers(config.getServers());
-		quorumPeer.setElectionType(config.getElectionAlg());
-		quorumPeer.setMyid(config.getServerId());
-		quorumPeer.setTickTime(config.getTickTime());
-		quorumPeer.setMinSessionTimeout(config.getMinSessionTimeout());
-		quorumPeer.setMaxSessionTimeout(config.getMaxSessionTimeout());
-		quorumPeer.setInitLimit(config.getInitLimit());
-		quorumPeer.setSyncLimit(config.getSyncLimit());
-		quorumPeer.setQuorumVerifier(config.getQuorumVerifier());
-		quorumPeer.setCnxnFactory(cnxnFactory);
-		quorumPeer.setZKDatabase(new ZKDatabase(quorumPeer.getTxnFactory()));
-		quorumPeer.setLearnerType(config.getPeerType());
+    /**
+     * Copied from QuorumPeerMain
+     */
+    protected void runFromConfig(QuorumPeerConfig config) throws IOException {
+        LOG.info("Starting quorum peer");
+        ServerCnxnFactory cnxnFactory = ServerCnxnFactory.createFactory();
+        cnxnFactory.configure(config.getClientPortAddress(),
+                              config.getMaxClientCnxns());
 
-		quorumPeer.start();
-	}
+        quorumPeer = new QuorumPeer();
+        quorumPeer.setClientPortAddress(config.getClientPortAddress());
+        quorumPeer.setTxnFactory(new FileTxnSnapLog(
+                                                    new File(
+                                                             config.getDataLogDir()),
+                                                    new File(
+                                                             config.getDataDir())));
+        quorumPeer.setQuorumPeers(config.getServers());
+        quorumPeer.setElectionType(config.getElectionAlg());
+        quorumPeer.setMyid(config.getServerId());
+        quorumPeer.setTickTime(config.getTickTime());
+        quorumPeer.setMinSessionTimeout(config.getMinSessionTimeout());
+        quorumPeer.setMaxSessionTimeout(config.getMaxSessionTimeout());
+        quorumPeer.setInitLimit(config.getInitLimit());
+        quorumPeer.setSyncLimit(config.getSyncLimit());
+        quorumPeer.setQuorumVerifier(config.getQuorumVerifier());
+        quorumPeer.setCnxnFactory(cnxnFactory);
+        quorumPeer.setZKDatabase(new ZKDatabase(quorumPeer.getTxnFactory()));
+        quorumPeer.setLearnerType(config.getPeerType());
+
+        quorumPeer.start();
+    }
 }

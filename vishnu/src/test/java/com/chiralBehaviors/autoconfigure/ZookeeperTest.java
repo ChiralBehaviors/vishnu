@@ -39,126 +39,130 @@ import com.hellblazer.utils.Utils;
  */
 public class ZookeeperTest {
 
-	@Test
-	public void example() throws Exception {
-		Gossip gossipSeed = new GossipConfiguration().construct();
-		InetSocketAddress gossipSeedAddress = gossipSeed.getLocalAddress();
-		gossipSeed.start();
+    @Test
+    public void example() throws Exception {
+        Gossip gossipSeed = new GossipConfiguration().construct();
+        InetSocketAddress gossipSeedAddress = gossipSeed.getLocalAddress();
+        gossipSeed.start();
 
-		try (TemporaryDirectory dir1 = new TemporaryDirectory(
-				"functional-test-1-", ".dir", new File("target").getAbsoluteFile());
-				TemporaryDirectory dir2 = new TemporaryDirectory(
-						"functional-test-2-", ".dir",
-						new File("target").getAbsoluteFile());) {
-			final File autoconfig1 = new File(dir1.directory,
-					"autoconfigure.yml").getAbsoluteFile();
-			final File autoconfig2 = new File(dir2.directory,
-					"autoconfigure.yml").getAbsoluteFile();
-			initializeDirectories(gossipSeedAddress, dir1.directory,
-					dir2.directory, autoconfig1, autoconfig2);
-			final ZookeeperLauncher launcher1 = new ZookeeperLauncher(
-					autoconfig1.getAbsolutePath());
-			final ZookeeperLauncher launcher2 = new ZookeeperLauncher(
-					autoconfig2.getAbsolutePath());
-			Thread daemon1 = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					launcher1.start(20, TimeUnit.SECONDS);
-				};
-			}, "Zookeeper 1 launcher");
-			Thread daemon2 = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					launcher2.start(20, TimeUnit.SECONDS);
-				};
-			}, "Zookeeper 2 launcher");
-			daemon1.start();
-			daemon2.start();
-			assertTrue("Zookeeper 1 did not complete configuration",
-					Utils.waitForCondition(40 * 1000, new Condition() {
-						@Override
-						public boolean isTrue() {
-							return launcher1.configurationCompleted.get();
-						}
-					}));
-			assertTrue("Zookeeper 1 did not launch successfully",
-					launcher1.success.get());
-			assertTrue("Zookeeper 2 did not complete configuration",
-					Utils.waitForCondition(40 * 1000, new Condition() {
-						@Override
-						public boolean isTrue() {
-							return launcher2.configurationCompleted.get();
-						}
-					}));
-			assertTrue("Zookeeper 2 did not launch successfully",
-					launcher2.success.get());
+        try (TemporaryDirectory dir1 = new TemporaryDirectory(
+                                                              "functional-test-1-",
+                                                              ".dir",
+                                                              new File("target").getAbsoluteFile());
+                TemporaryDirectory dir2 = new TemporaryDirectory(
+                                                                 "functional-test-2-",
+                                                                 ".dir",
+                                                                 new File(
+                                                                          "target").getAbsoluteFile());) {
+            final File autoconfig1 = new File(dir1.directory,
+                                              "autoconfigure.yml").getAbsoluteFile();
+            final File autoconfig2 = new File(dir2.directory,
+                                              "autoconfigure.yml").getAbsoluteFile();
+            initializeDirectories(gossipSeedAddress, dir1.directory,
+                                  dir2.directory, autoconfig1, autoconfig2);
+            final ZookeeperLauncher launcher1 = new ZookeeperLauncher(
+                                                                      autoconfig1.getAbsolutePath());
+            final ZookeeperLauncher launcher2 = new ZookeeperLauncher(
+                                                                      autoconfig2.getAbsolutePath());
+            Thread daemon1 = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    launcher1.start(20, TimeUnit.SECONDS);
+                };
+            }, "Zookeeper 1 launcher");
+            Thread daemon2 = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    launcher2.start(20, TimeUnit.SECONDS);
+                };
+            }, "Zookeeper 2 launcher");
+            daemon1.start();
+            daemon2.start();
+            assertTrue("Zookeeper 1 did not complete configuration",
+                       Utils.waitForCondition(40 * 1000, new Condition() {
+                           @Override
+                           public boolean isTrue() {
+                               return launcher1.configurationCompleted.get();
+                           }
+                       }));
+            assertTrue("Zookeeper 1 did not launch successfully",
+                       launcher1.success.get());
+            assertTrue("Zookeeper 2 did not complete configuration",
+                       Utils.waitForCondition(40 * 1000, new Condition() {
+                           @Override
+                           public boolean isTrue() {
+                               return launcher2.configurationCompleted.get();
+                           }
+                       }));
+            assertTrue("Zookeeper 2 did not launch successfully",
+                       launcher2.success.get());
 
-			System.out.println("Waiting for peers to elect a leader");
-			assertTrue("Zookeeper 1 did not find its peer",
-					Utils.waitForCondition(20 * 1000, new Condition() {
-						@Override
-						public boolean isTrue() {
-							return launcher1.getQuorumPeer().getPeerState() != ServerState.LOOKING;
-						}
-					}));
+            System.out.println("Waiting for peers to elect a leader");
+            assertTrue("Zookeeper 1 did not find its peer",
+                       Utils.waitForCondition(20 * 1000, new Condition() {
+                           @Override
+                           public boolean isTrue() {
+                               return launcher1.getQuorumPeer().getPeerState() != ServerState.LOOKING;
+                           }
+                       }));
 
-			Thread.sleep(2000); // Just because
-			assertTrue("Zookeeper 2 did not find its peer",
-					Utils.waitForCondition(20 * 1000, new Condition() {
-						@Override
-						public boolean isTrue() {
-							return launcher2.getQuorumPeer().getPeerState() != ServerState.LOOKING;
-						}
-					}));
+            Thread.sleep(2000); // Just because
+            assertTrue("Zookeeper 2 did not find its peer",
+                       Utils.waitForCondition(20 * 1000, new Condition() {
+                           @Override
+                           public boolean isTrue() {
+                               return launcher2.getQuorumPeer().getPeerState() != ServerState.LOOKING;
+                           }
+                       }));
 
-			System.out.println("Verifying peer views in synch");
-			Thread.sleep(2000); // Just because
+            System.out.println("Verifying peer views in synch");
+            Thread.sleep(2000); // Just because
 
-			assertTrue("Zookeeper 1 does not have the correct view size",
-					Utils.waitForCondition(20 * 1000, new Condition() {
-						@Override
-						public boolean isTrue() {
-							return launcher1.getQuorumPeer().getView().size() == 2;
-						}
-					}));
+            assertTrue("Zookeeper 1 does not have the correct view size",
+                       Utils.waitForCondition(20 * 1000, new Condition() {
+                           @Override
+                           public boolean isTrue() {
+                               return launcher1.getQuorumPeer().getView().size() == 2;
+                           }
+                       }));
 
-			Thread.sleep(2000); // Just because
-			assertTrue("Zookeeper 2 does not have the correct view size",
-					Utils.waitForCondition(20 * 1000, new Condition() {
-						@Override
-						public boolean isTrue() {
-							return launcher2.getQuorumPeer().getView().size() == 2;
-						}
-					}));
-			System.out.println("Everything is hunky dory");
-		}
-	}
+            Thread.sleep(2000); // Just because
+            assertTrue("Zookeeper 2 does not have the correct view size",
+                       Utils.waitForCondition(20 * 1000, new Condition() {
+                           @Override
+                           public boolean isTrue() {
+                               return launcher2.getQuorumPeer().getView().size() == 2;
+                           }
+                       }));
+            System.out.println("Everything is hunky dory");
+        }
+    }
 
-	private void initializeDirectories(InetSocketAddress gossipSeedAddress,
-			File dir1, File dir2, File autoconfig1, File autoconfig2)
-			throws IOException {
-		File autoConfigOrig = new File(
-				"src/test/resources/zookeeper/autoconfigure.yml");
-		File templateOrg = new File("src/test/resources/zookeeper/zoo.stg");
-		File template1 = new File(dir1, "zookeeper.stg").getAbsoluteFile();
-		File template2 = new File(dir2, "zookeeper.stg").getAbsoluteFile();
-		Map<String, String> testProperties = new HashMap<>();
+    private void initializeDirectories(InetSocketAddress gossipSeedAddress,
+                                       File dir1, File dir2, File autoconfig1,
+                                       File autoconfig2) throws IOException {
+        File autoConfigOrig = new File(
+                                       "src/test/resources/zookeeper/autoconfigure.yml");
+        File templateOrg = new File("src/test/resources/zookeeper/zoo.stg");
+        File template1 = new File(dir1, "zookeeper.stg").getAbsoluteFile();
+        File template2 = new File(dir2, "zookeeper.stg").getAbsoluteFile();
+        Map<String, String> testProperties = new HashMap<>();
 
-		// set up bootstrap properties, used to set up the initial
-		// configuration
-		testProperties.put("gossip.seed.host", gossipSeedAddress.getHostName());
-		testProperties.put("gossip.seed.port",
-				String.valueOf(gossipSeedAddress.getPort()));
-		testProperties.put("network.interface", NetworkInterface.getByIndex(1)
-				.getName());
-		testProperties.put("test.dir", dir1.getAbsolutePath());
+        // set up bootstrap properties, used to set up the initial
+        // configuration
+        testProperties.put("gossip.seed.host", gossipSeedAddress.getHostName());
+        testProperties.put("gossip.seed.port",
+                           String.valueOf(gossipSeedAddress.getPort()));
+        testProperties.put("network.interface",
+                           NetworkInterface.getByIndex(1).getName());
+        testProperties.put("test.dir", dir1.getAbsolutePath());
 
-		// copy and transform our test configurations
-		Utils.replaceProperties(autoConfigOrig, autoconfig1, testProperties);
-		Utils.replaceProperties(templateOrg, template1, testProperties);
+        // copy and transform our test configurations
+        Utils.replaceProperties(autoConfigOrig, autoconfig1, testProperties);
+        Utils.replaceProperties(templateOrg, template1, testProperties);
 
-		testProperties.put("test.dir", dir2.getAbsolutePath());
-		Utils.replaceProperties(autoConfigOrig, autoconfig2, testProperties);
-		Utils.replaceProperties(templateOrg, template2, testProperties);
-	}
+        testProperties.put("test.dir", dir2.getAbsolutePath());
+        Utils.replaceProperties(autoConfigOrig, autoconfig2, testProperties);
+        Utils.replaceProperties(templateOrg, template2, testProperties);
+    }
 }
