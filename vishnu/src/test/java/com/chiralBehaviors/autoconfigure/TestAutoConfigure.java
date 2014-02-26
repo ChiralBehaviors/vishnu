@@ -29,7 +29,6 @@ import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,11 +48,11 @@ import com.chiralBehaviors.autoconfigure.configuration.ServiceCollection;
 import com.chiralBehaviors.autoconfigure.configuration.SingletonService;
 import com.chiralBehaviors.autoconfigure.configuration.Template;
 import com.chiralBehaviors.autoconfigure.configuration.UniqueDirectory;
-import com.hellblazer.nexus.config.GossipScopeConfiguration;
 import com.hellblazer.slp.ServiceListener;
 import com.hellblazer.slp.ServiceReference;
 import com.hellblazer.slp.ServiceScope;
 import com.hellblazer.slp.ServiceURL;
+import com.hellblazer.slp.local.config.LocalScopeConfiguration;
 import com.hellblazer.utils.Condition;
 import com.hellblazer.utils.TemporaryDirectory;
 import com.hellblazer.utils.Utils;
@@ -325,11 +324,6 @@ public class TestAutoConfigure {
             when(serviceCollection2Ref.getUrl()).thenReturn(serviceCollection2Url);
             when(serviceCollection2Ref.getProperties()).thenReturn(serviceProps2);
 
-            GossipScopeConfiguration gossipScopeConfig = new GossipScopeConfiguration();
-            gossipScopeConfig.gossip.seeds = Collections.singletonList(new InetSocketAddress(
-                                                                                             "localhost",
-                                                                                             54321));
-
             AutoConfigure autoConfigure = new AutoConfigure(
                                                             serviceFormat,
                                                             interfaceName,
@@ -343,9 +337,11 @@ public class TestAutoConfigure {
                                                             substitutions,
                                                             uniqueDirectories,
                                                             additionalPorts,
-                                                            null, null, true,
+                                                            null,
+                                                            null,
+                                                            true,
                                                             jmxConfig,
-                                                            gossipScopeConfig);
+                                                            new LocalScopeConfiguration());
             AutoConfigureService configuredService = new AutoConfigureService(
                                                                               autoConfigure) {
 
@@ -404,7 +400,6 @@ public class TestAutoConfigure {
             assertEquals(String.valueOf(bound.getPort()),
                          properties1.get(portVariable));
             assertEquals("B", properties1.get("property.b"));
-            assertEquals("localhost:54321", properties1.get("wka"));
             assertEquals(serviceCollectionConfig,
                          properties2.get(serviceCollectionVariable));
             assertEquals(serviceConfig, properties2.get(serviceVariable));

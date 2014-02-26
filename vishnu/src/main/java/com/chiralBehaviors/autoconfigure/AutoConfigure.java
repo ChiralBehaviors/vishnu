@@ -51,7 +51,6 @@ import com.chiralBehaviors.autoconfigure.configuration.SingletonService;
 import com.chiralBehaviors.autoconfigure.configuration.Template;
 import com.chiralBehaviors.autoconfigure.configuration.UniqueDirectory;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hellblazer.nexus.config.GossipScopeConfiguration;
 import com.hellblazer.slp.InvalidSyntaxException;
 import com.hellblazer.slp.ServiceEvent;
 import com.hellblazer.slp.ServiceListener;
@@ -651,20 +650,6 @@ public class AutoConfigure {
             } catch (IllegalArgumentException e) {
                 // Really? This is how I have to detect that there isn't a
                 // formal parameter? #fail
-            }
-        }
-
-        // Register the Gossip seeds
-        if (config.discovery instanceof GossipScopeConfiguration) {
-            try {
-                // create a Cluster to make interaction with Gossip seeds equal to
-                // service collections
-                st.add("gossipSeeds",
-                       new Cluster<>(
-                                     ((GossipScopeConfiguration) config.discovery).gossip.seeds));
-            } catch (IllegalArgumentException e) {
-                // Really? This is how I have to detect that there isn't a formal
-                // parameter? #fail
             }
         }
 
